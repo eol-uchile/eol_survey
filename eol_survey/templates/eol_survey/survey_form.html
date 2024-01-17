@@ -1,0 +1,47 @@
+## mako
+
+<%page expression_filter="h"/>
+<%! from django.utils.translation import ugettext as _ %>
+<%namespace name='static' file='/static_content.html'/>
+<!-- <%inherit file="../main.html" /> -->
+<%block name="pagetitle">${_("Formulario de Encuesta")}</%block>
+<link rel="stylesheet" type="text/css" href="${static.url('eol_survey/css/main.css')}"/> 
+<% 
+%>
+<main id="main" aria-label="Content" tabindex="-1" class="static_pages contact-form">
+    <div class="message-container ${'no-message' if context.get('status', '') == '' else ''} ${'error-message'  if context.get('status', '') == 'Error' else ''}">
+        <p class ="status_survey" id="status_survey">
+            %if context['status'] == "Create": 
+                    Encuesta Creada correctamente.
+            %elif context['status'] == "Update": 
+                    Encuesta Actualizada correctamente. 
+            %elif context['status'] == "Error": 
+                    Error al ingresar los datos, actualice la página e intente nuevamente. Si persiste el error comuníquese con mesa de ayuda.
+            %endif  
+        </p>
+    </div>
+    
+    <div class="row contact-form-select" id="contact-form-select">    
+        <label for="survey_id_select">Selecciona una encuesta segun el encabezado:</label>
+        <select name="select_survey_id" id="select_survey_id" >
+        </select>       
+        <input class= "btn btn-primary form-create" type="submit" id="create_survey" value="Crear encuesta"> 
+        <input class= "btn btn-primary form-search" type="submit" id="edit_survey" value="Ver encuesta" disabled> 
+        <input class= "btn btn-primary form-delete" type="submit" id="delete_survey" value="Eliminar encuesta" onclick="deleteSurvey()" disabled>    
+
+    </div> 
+    <div class="row contact-form-input" id="contact-form-input">
+        <form method="POST">
+            <input type="hidden" name="inputId" id="inputId" value=""/>
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+            <label for="form-header">Encabezado:</label>
+            <textarea name="form-header" id="form-header" required placeholder="Escriba el encabezado acá"></textarea>
+            <label for="form-description">Descripción:</label>
+            <textarea id="form-description" name="form-description" required placeholder="Ingrese la descripción de la encuesta a continuación" minlength="8">${data['form-description']}</textarea>
+            <label for="form-content">Contenido:</label>
+            <textarea name="form-content" id="form-content" required placeholder="Escriba su encuesta a continuación"></textarea>
+            <input class="btn btn-primary form-submit" id="view_survey" type="submit" value="Guardar Encuesta">
+        </form>
+    </div>
+    <script type="text/javascript" src="${static.url('eol_survey/js/main.js')}"></script>
+</main>
