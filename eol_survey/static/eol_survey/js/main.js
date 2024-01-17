@@ -36,7 +36,7 @@ editButton.addEventListener("click", function () {
     const form = document.getElementById("contact-form-input");
 
         inputSurvey.value =cboSurvey.value;
-        saveSurvey.value = "Editar Encuesta";
+        saveSurvey.value = "Guardar Cambios";
         contactForm.style.display = "block";    
         loadMessage();
     });

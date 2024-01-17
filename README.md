@@ -1,33 +1,58 @@
-# EOL CONTACT FORM
+# EOL SURVEY
 
-![https://github.com/eol-uchile/eol_contact_form/actions](https://github.com/eol-uchile/eol_contact_form/workflows/Python%20application/badge.svg)
+![https://github.com/eol-uchile/eol_survey/actions](https://github.com/eol-uchile/eol_survey/workflows/Python%20application/badge.svg)
 
-New Page for Open Edx LMS (EOL) with a contact form
+On this Manager of your surveys can create, delete or edit a different surveys, also use this survey in a course like an xblock and finally, generate a report in the instructor view with all the answers of your students.
 
 # Install
 
     docker-compose exec lms pip install -e /openedx/requirements/eol_survey
-# Configuration
+    docker-compose exec cms pip install -e /openedx/requirements/eol_survey
 
-To enable [Google ReCAPTCHA v2](https://www.google.com/recaptcha/) Edit *production.py* in *lms settings* and add your own keys. Add help desk default email.
 
-    EOL_CONTACT_FORM_RECAPTCHA_SITE_KEY = AUTH_TOKENS.get('EOL_CONTACT_FORM_RECAPTCHA_SITE_KEY', '')
-    EOL_CONTACT_FORM_RECAPTCHA_SECRET_KEY = AUTH_TOKENS.get('EOL_CONTACT_FORM_RECAPTCHA_SECRET_KEY', '')
-    EOL_CONTACT_FORM_HELP_DESK_EMAIL = AUTH_TOKENS.get('EOL_CONTACT_FORM_HELP_DESK_EMAIL', '')
+# Install Theme
 
-Set help desk email in a Site:
-- */admin/site_configuration/siteconfiguration/*
-    - **"EOL_CONTACT_FORM_HELP_DESK_EMAIL":""**
+To enable export Eol Survey combobox in your theme add next file and/or lines of code:
+
+- _../themes/your_theme/lms/templates/instructor/instructor_dashboard_2/data_download.html_
+    
+    **add the script and css**
+
+        <link rel="stylesheet" type="text/css" href="${static.url('eol_survey/css/eol_survey_report_analytics.css')}"/>
+        <script type="text/javascript" src="${static.url('eol_survey/js/loadcbanalytics.js')}"></script>
+    
+    **and add html button**
+    
+        <% 
+        try: 
+          import eol_survey
+          enable_survey = True
+          survey_url = '{}?{}'.format(reverse('eolSurveyReport'), urllib.parse.urlencode({'course': str(course.id)}))
+        except mportError:
+          enable_survey = False 
+        %>
+        %if enable_survey :
+        
+        <div class='eol_survey_report_analytics-report'>    
+            <hr>
+            <h4 class="hd hd-4">${_("Analítica de encuestas")}</h4>
+            <p>
+                <select name="cb_eol_survey" id="cb_eol_survey" >
+                </select>     
+                <input onclick="generate_analytics_report_survey(this)" type="button" name="eol_survey_report_analytics-report" value="${_("Generar")}" data-endpoint="${ survey_url }"/>
+            </p>
+            <div class="eol_survey_report_analytics-success-msg" id="eol_survey_report_analytics-success-msg"></div>
+            <div class="eol_survey_report_analytics-warning-msg" id="eol_survey_report_analytics-warning-msg"></div>
+            <div class="eol_survey_report_analytics-error-msg" id="eol_survey_report_analytics-error-msg"></div>
+            <input type="hidden" name="courseId" id="courseId" value="${course.id}"> 
+        </div>
+        %endif
+
+# URL
+mydomain.com/Survey_form
 
 ## TESTS
 **Prepare tests:**
 
     > cd .github/
-    > docker-compose run lms /openedx/requirements/eol_contact_form/.github/test.sh
-
-# Screenshots
-*Last Update 15/04/2020*
-
-<p align="center">
-<img width="600" src="examples/lms_form.png">
-</p>
+    > docker-compose run lms /openedx/requirements/eol_survey/.github/test.sh
