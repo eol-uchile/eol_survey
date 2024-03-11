@@ -1049,14 +1049,36 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
 
 class TestEolSurveyReportView(ModuleStoreTestCase):
     def setUp(self):
+        # USER_COUNT = 11
         super(TestEolSurveyReportView, self).setUp()
         self.course = CourseFactory.create(
             org='mss',
             course='999',
             display_name='2021',
-            emit_signals=True)
+            emit_signals=True, 
+            run= 'test')
         aux = CourseOverview.get_from_id(self.course.id)
-        self.block_id = 'block-v1:mss+999+2021+type@eol_survey+block@9d584d6a1bb345b1a1930e4358ba8f6a'
+        with self.store.bulk_operations(self.course.id, emit_signals=False):
+            self.chapter = ItemFactory.create(
+                parent_location=self.course.location,
+                category="chapter",
+            )
+            self.section = ItemFactory.create(
+                parent_location=self.chapter.location,
+                category="sequential",
+            )
+            self.subsection = ItemFactory.create(
+                parent_location=self.section.location,
+                category="vertical",
+            )
+            self.items = [
+                ItemFactory.create(
+                    parent_location=self.subsection.location,
+                    category="eol_survey"
+                )
+            ]
+        self.block_id = str(self.items[0].location)
+        #self.block_id = 'block-v1:mss+999+2021+type@eol_survey+block@9d584d6a1bb345b1a1930e4358ba8f6a'
         with patch('common.djangoapps.student.models.cc.User.save'):
             # staff user
             self.client_instructor = Client()
@@ -1080,6 +1102,8 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
                 is_staff=True)
             role = CourseInstructorRole(self.course.id)
             role.add_users(self.user_instructor)
+            role2 = CourseStaffRole(self.course.id)
+            role2.add_users(self.user_staff)
             self.client_instructor.login(
                 username='instructor', password='12345')
             self.client_noStaff.login(
@@ -1180,14 +1204,14 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         module = StudentModule(
             module_state_key=usage_key,
             student=self.student,
-            course_id=usage_key.course_key,
+            course_id=self.course.id,
             module_type='eol_survey',
             state='{"attempts": 1, "input_state": {"answer_id_1": 1, "answer_id_2": 2}}')
         module.save()
         module2 = StudentModule(
             module_state_key=usage_key,
             student=self.student2,
-            course_id=usage_key.course_key,
+            course_id=self.course.id,
             module_type='eol_survey',
             state='{"attempts": 2, "input_state": {"answer_id_1": 1, "answer_id_2": 2}}')
         module2.save()
@@ -1237,7 +1261,7 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         module = StudentModule(
             module_state_key=usage_key,
             student=self.student,
-            course_id=usage_key.course_key,
+            course_id=self.course.id,
             module_type='eol_survey',
             state='{}')
         module.save()
@@ -1263,11 +1287,13 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         response = self.client_instructor.get(reverse('eolSurveyReport'), data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response._container[0].decode()), {'error': 'Falta parametro block o parametro incorrecto'})
-
-    def test_eol_survey_report_analytics_block_no_exists(self):
+    
+    @patch('eol_survey.views.UsageKey')
+    def test_eol_survey_report_analytics_block_no_exists(self, mock_usageKey):
         """
             Test eol_survey_report_analytics view when block no exists
         """
+        mock_usageKey.configure_mock(course_key=self.course.id)
         data = {
             'block':self.block_id,
             'course': str(self.course.id)
@@ -1305,24 +1331,25 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         usage_key = UsageKey.from_string(self.block_id)
         data = {
             'block':self.block_id,
-            'course': str(usage_key.course_key)
+            'course': str(self.course.id)
         }
         data_mock.return_value = data
         response = self.client_student.get(reverse('eolSurveyReport'), data)
         request = response.request
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response._container[0].decode()), {'error': 'Usuario no tiene rol para esta funcionalidad'})
-
+    
     @patch("eol_survey.views.EolSurveyReportAnalyticsView.have_permission")
     @patch("eol_survey.views.EolSurveyReportAnalyticsView.validate_and_get_data")
     def test_eol_survey_report_analytics_get_data_researcher(self, data_mock, permission_mock):
         """
             Test eol_survey_report_analytics view when user is data researcher
         """
+        block_id = 'block-v1:mss+999+2021+type@eol_survey+block@9d584d6a1bb345b1a1930e4358ba8f6a'
+        usage_key= UsageKey.from_string(block_id)
         permission_mock.return_value = True
-        usage_key = UsageKey.from_string(self.block_id)
         data = {
-            'block':self.block_id,
+            'block': block_id,
             'course': str(usage_key.course_key)
         }
         data_mock.return_value = data
@@ -1332,14 +1359,44 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(r['status'], 'La analitica de las encuestas esta siendo creada, en un momento estará disponible para descargar.')
     
-    #Test about cb survey in the instructor page. 
+    def test_successfully_get_eol_survey_responses(self):
+        """
+            Test to load cb_survey in the instructor page. With a survey load in the cb
+        """
+        from lms.djangoapps.courseware.models import StudentModule
+        usage_key = UsageKey.from_string(self.block_id)
+        module = StudentModule(
+            module_state_key=usage_key,
+            student=self.student,
+            course_id=self.course.id,
+            module_type='eol_survey',
+            state='{"attempts": 1, "input_state": {"answer_id_1": 1}}')
+        module.save()
+        response = self.client_staff.get(reverse('survey_responses', kwargs= {'course_id':self.course.id}))
+        self.assertEqual(response.status_code,200)
+        self.assertJSONEqual(
+            str(response.content, encoding='utf-8'), 
+            {"response": [{'location': self.block_id, 'name_survey': self.items[0].display_name, 'parent_display_name': '{} > {} > {}'.format(self.chapter.display_name,self.section.display_name, self.subsection.display_name) }]}
+        ) 
+
+    def test_successfully_get_eol_survey_no_responses(self):
+        """
+            Test to load cb_survey in instructor page. But in this case dosent exist a survey to load
+        """
+        response = self.client_staff.get(reverse('survey_responses', kwargs= {'course_id':self.course.id}))
+        self.assertEqual(response.status_code,200)
+        self.assertJSONEqual(
+            str(response.content, encoding='utf-8'), 
+            {"response": []}
+        ) 
+        
     def test_get_eol_survey_responses_staff(self):
         """
             This function can only be used with staff rolls.
         """
 
         response = self.client_staff.get(reverse('survey_responses', kwargs= {'course_id':self.course.id}))
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
 
     def test_get_eol_survey_responses_instructor(self):
         """

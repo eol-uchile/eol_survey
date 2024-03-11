@@ -71,7 +71,7 @@ def generate(_xmodule_instance_args, _entry_id, course_id, task_input, action_na
             output_buffer,
             delimiter=';',
             dialect='excel')
-    student_states = get_all_states(data['block'])
+    student_states = get_all_states(data['block'],course_id)
     csvwriter = _build_student_data(data, students, data['block'], student_states, csvwriter)
 
     current_step = {'step': 'EolSurveyReportAnalytics - Uploading CSV'}

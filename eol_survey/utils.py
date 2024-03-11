@@ -16,12 +16,12 @@ from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRol
 import logging
 log = logging.getLogger(__name__)
 
-def get_all_states(block_id):
+def get_all_states(block_id, course_key):
     """
         Get all student module
     """
     usage_key = UsageKey.from_string(block_id)
-    smdat = StudentModule.objects.filter(course_id=usage_key.course_key, module_state_key=usage_key).order_by('student__username').values('student__username', 'state')
+    smdat = StudentModule.objects.filter(course_id=course_key, module_state_key=usage_key).order_by('student__username').values('student__username', 'state')
     response = []
     for module in smdat:
         response.append({'username': module['student__username'], 'state': json.loads(module['state'])})

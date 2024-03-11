@@ -1,5 +1,5 @@
 #!/bin/dash
-
+set -e
 pip install -e /openedx/requirements/eol_survey
 
 cd /openedx/requirements/eol_survey/eol_survey
