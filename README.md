@@ -17,9 +17,11 @@ To enable export Eol Survey combobox in your theme add next file and/or lines of
 - _../themes/your_theme/lms/templates/instructor/instructor_dashboard_2/data_download.html_
     
     **add the script and css**
-
+        
+        <script type="text/javascript" src="${static.url('eol_survey/js/eol_survey_report_analytics.js')}"></script>
         <link rel="stylesheet" type="text/css" href="${static.url('eol_survey/css/eol_survey_report_analytics.css')}"/>
         <script type="text/javascript" src="${static.url('eol_survey/js/loadcbanalytics.js')}"></script>
+
     
     **and add html button**
     
