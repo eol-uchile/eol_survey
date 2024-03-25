@@ -8,6 +8,9 @@ On this Manager of your surveys can create, delete or edit a different surveys, 
 
     docker-compose exec lms pip install -e /openedx/requirements/eol_survey
     docker-compose exec cms pip install -e /openedx/requirements/eol_survey
+    docker-compose exec lms python manage.py lms --settings=prod.production makemigrations eol_survey
+    docker-compose exec lms python manage.py lms --settings=prod.production migrate eol_survey
+
 
 
 # Install Theme
@@ -27,7 +30,9 @@ To enable export Eol Survey combobox in your theme add next file and/or lines of
     
         <% 
         try: 
+          import urllib
           import eol_survey
+          from django.urls import reverse
           enable_survey = True
           survey_url = '{}?{}'.format(reverse('eolSurveyReport'), urllib.parse.urlencode({'course': str(course.id)}))
         except mportError:
