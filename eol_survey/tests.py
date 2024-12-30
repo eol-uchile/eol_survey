@@ -7,17 +7,14 @@ from . import views
 from pytz import UTC
 from .task import  generate
 from mock import patch, Mock
-from datetime import datetime
 from django.test import Client
 from django.urls import reverse
 from django.test import TestCase
 from xblock.scorable import Score
 from xblock.fields import ScopeIds
-from collections import namedtuple
 from eol_survey.models import Survey
-from eol_survey.views import EolSurveyView
 from xblock.field_data import DictFieldData
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from django.utils.translation import gettext as _
 from .eolsurveyconsumer import EolSurveyConsumerXBlock
 from edx_user_state_client.interface import XBlockUserState
@@ -25,11 +22,7 @@ from common.lib.xmodule.xmodule.tests import get_test_system
 from lms.djangoapps.instructor_task.models import ReportStore
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from opaque_keys.edx.keys import CourseKey, UsageKey, LearningContextKey
-from openedx.core.djangoapps.site_configuration.tests.test_util import (
-    with_site_configuration,
-    with_site_configuration_context,
-)
+from opaque_keys.edx.keys import UsageKey
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from common.djangoapps.student.tests.factories import CourseAccessRoleFactory
 from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
