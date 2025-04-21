@@ -1,7 +1,8 @@
-
-
+# Installed packages (via pip)
 from django.conf.urls import url
 from django.conf import settings
+
+# Internal project dependencies
 from . import api,utils 
 from .views import EolSurveyView, EolSurveyReportAnalyticsView
 

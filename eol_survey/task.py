@@ -1,21 +1,29 @@
-import six
-import csv
-import codecs
-from pytz import UTC
-from time import time
+# Python Standard Libraries
 from datetime import datetime
 from functools import partial
-from celery import current_task, task
+from time import time
+import codecs
+import logging
+
+# Installed packages (via pip)
+from celery import task
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext_noop
+from pytz import UTC
+import csv
+import six
+
+# Edx dependencies
+from common.djangoapps.util.file import course_filename_prefix_generator
+from lms.djangoapps.instructor_task.api_helper import submit_task
 from lms.djangoapps.instructor_task.models import ReportStore
 from lms.djangoapps.instructor_task.tasks_base import BaseInstructorTask    
-from opaque_keys.edx.keys import CourseKey, UsageKey, LearningContextKey
-from common.djangoapps.util.file import course_filename_prefix_generator
-from .utils import get_all_states,_build_student_data, get_all_enrolled_users
-from lms.djangoapps.instructor_task.api_helper import submit_task, AlreadyRunningError
 from lms.djangoapps.instructor_task.tasks_helper.runner import run_main_task, TaskProgress
-import logging
+from opaque_keys.edx.keys import UsageKey
+
+# Internal project dependencies
+from .utils import get_all_states, _build_student_data, get_all_enrolled_users
+
 log = logging.getLogger(__name__)
 
 def task_process_data(request, data):

@@ -1,11 +1,14 @@
-import json 
-from .models import Survey    
-from django.http import HttpResponse
-from django.http import JsonResponse
-from .utils import get_eol_survey_responses
+# Python Standard Libraries
+import json
+import logging
+
+# Installed packages (via pip)
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-import logging
+# Internal project dependencies
+from .models import Survey    
+
 log = logging.getLogger(__name__)
 
 def message_detail(request):

@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-import json
-import requests
-from .models import Survey
-from itertools import cycle
-from django.http import Http404
-from django.urls import reverse
-from django.conf import settings
-from .task import task_process_data
+# Installed packages (via pip)
+from django.db import transaction
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
-from opaque_keys import InvalidKeyError
-from django.utils.html import strip_tags
 from django.views.generic.base import View
-from django.db import IntegrityError, transaction
-from lms.djangoapps.instructor import permissions
-from xmodule.modulestore.django import modulestore
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
+
+# Edx dependencies
 from lms.djangoapps.courseware.access import has_access
+from lms.djangoapps.courseware.courses import get_course_with_access
+from lms.djangoapps.instructor import permissions
+from lms.djangoapps.instructor_task.api_helper import AlreadyRunningError
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import UsageKey
+from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError
-from opaque_keys.edx.keys import CourseKey, UsageKey, LearningContextKey
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from lms.djangoapps.instructor_task.api_helper import submit_task, AlreadyRunningError
-from lms.djangoapps.courseware.courses import get_course_by_id, get_course_with_access
-from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
+
+# Internal project dependencies
+from .models import Survey
+from .task import task_process_data
+
 
 import logging
 logger = logging.getLogger(__name__)

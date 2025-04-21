@@ -1,43 +1,44 @@
 # -*- coding: utf-8 -*-
-import json
-import pytest
-import unittest
-import textwrap
-from . import views
-from pytz import UTC
-from .task import  generate
-from mock import patch, Mock
-from django.test import Client
-from django.urls import reverse
-from django.test import TestCase
-from xblock.scorable import Score
-from xblock.fields import ScopeIds
-from eol_survey.models import Survey
-from xblock.field_data import DictFieldData
+# Python Standard Libraries
 from collections import defaultdict
-from django.utils.translation import gettext as _
-from .eolsurveyconsumer import EolSurveyConsumerXBlock
-from edx_user_state_client.interface import XBlockUserState
-from common.lib.xmodule.xmodule.tests import get_test_system
-from lms.djangoapps.instructor_task.models import ReportStore
-from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from opaque_keys.edx.keys import UsageKey
-from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
-from common.djangoapps.student.tests.factories import CourseAccessRoleFactory
-from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from common.djangoapps.student.tests.factories import UserFactory, CourseEnrollmentFactory
-
-
-
+import datetime
+import json
 import logging
+import textwrap
+import unittest
+
+# Installed packages (via pip)
+from django.test import Client, TestCase
+from django.urls import reverse
+from django.utils.translation import gettext as _
+from mock import patch, Mock
+
+# Edx dependencies
+from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
+from common.djangoapps.student.tests.factories import CourseAccessRoleFactory, CourseEnrollmentFactory, UserFactory
+from common.lib.xmodule.xmodule.tests import get_test_system
+from edx_user_state_client.interface import XBlockUserState
+from lms.djangoapps.instructor_task.models import ReportStore
+from opaque_keys.edx.keys import UsageKey
+from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from xblock.field_data import DictFieldData
+from xblock.fields import ScopeIds
+from xblock.scorable import Score
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
+from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
+
+# Internal project dependencies
+from . import views
+from .eolsurveyconsumer import EolSurveyConsumerXBlock
+from .task import  generate
+from eol_survey.models import Survey
+
 logger = logging.getLogger(__name__)
 test_config = {
     'PLATFORM_NAME': 'PLATFORM_NAME',
     'EOL_CONTACT_FORM_HELP_DESK_EMAIL': 'test@test.test'
 }
-
 
 class TestEolSurveyForm(TestCase):
     def setUp(self):
