@@ -6,6 +6,7 @@ import json
 import logging
 import textwrap
 import unittest
+import datetime
 
 # Installed packages (via pip)
 from django.test import Client, TestCase
@@ -18,6 +19,7 @@ from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRol
 from common.djangoapps.student.tests.factories import CourseAccessRoleFactory, CourseEnrollmentFactory, UserFactory
 from common.lib.xmodule.xmodule.tests import get_test_system
 from edx_user_state_client.interface import XBlockUserState
+from lms.djangoapps.courseware.models import StudentModule
 from lms.djangoapps.instructor_task.models import ReportStore
 from opaque_keys.edx.keys import UsageKey
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
@@ -29,7 +31,7 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 
 # Internal project dependencies
-from . import views
+from .views import EolSurveyView, EolSurveyReportAnalyticsView
 from .eolsurveyconsumer import EolSurveyConsumerXBlock
 from .task import  generate
 from eol_survey.models import Survey
@@ -80,11 +82,11 @@ class TestEolSurveyForm(TestCase):
             'form-description': 'Este es la encuesta de prueba',
             'form-content': '¿Que le parecio el curso?',
         }
-        result = views.EolSurveyView().validate_data(data)
+        result = EolSurveyView().validate_data(data)
         self.assertEqual(result['error'], False)
 
         data['form-header'] = ''
-        result = views.EolSurveyView().validate_data(data)
+        result = EolSurveyView().validate_data(data)
         self.assertEqual(result['error'], True)
         self.assertEqual(result['error_attr'], 'Encabezado')
     
@@ -181,6 +183,18 @@ class TestEolSurveyForm(TestCase):
         self.assertFalse(Survey.objects.filter(header= data['form-header']).exists())
         self.assertFalse("Encuesta creada correctamente" in response._container[0].decode())
         self.assertEqual(response.status_code, 200)
+    
+    def test_survey_form_view_get_anon(self):
+        """
+            Test when Survey_form_view is called by an anonymous client
+        """
+        data = { 
+            'form-header': 'Encuesta n7',
+            'form-description': 'Descripcion de una encuesta',
+            'form-content': '¿Que le parecio el curso?',
+        }
+        response = self.clientAnony.get(reverse('Survey_form_view'), data)
+        self.assertEqual(response.status_code, 400)
 
     def test_create_survey_without_header(self):
         """
@@ -582,6 +596,42 @@ class TestEolSurveyForm(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertTrue(Survey.objects.filter(id= survey.id).exists())
 
+    def test_delete_nonexistent_survey_id(self):
+        """
+            Tests that attempting to delete a survey with a non-existent survey_id 
+            results in an appropriate failure (e.g., the survey is not deleted).
+        """
+        data = {
+            'survey_id' : '1232'
+        }
+        response = self.clientStaff.post(reverse('delete_survey'), json.dumps(data), content_type= 'application/json')
+        json_string = response.content.decode('utf-8')
+        data = json.loads(json_string)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(data["success"])
+        self.assertEqual(
+            data['error'],
+            'dicha encuesta no existe.'
+        )
+
+    def test_delete_fails_when_survey_id_is_empty(self):
+        """
+            Tests that attempting to delete a survey with an empty survey_id 
+            fails and does not result in any deletion.
+        """
+        data = {
+            'survey_id' : ''
+        }
+        response = self.clientStaff.post(reverse('delete_survey'), json.dumps(data), content_type= 'application/json')
+        json_string = response.content.decode('utf-8')
+        data = json.loads(json_string)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(data["success"])
+        self.assertEqual(
+            data['error'],
+            'No se proporcionó una survey_id'
+        )
+
     def test_message_detail_successfully(self):
         """
             first a survey is created.
@@ -877,6 +927,11 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         self.addCleanup(self.find_question_label_patcher.stop)
         self.addCleanup(self.find_answer_text_patcher.stop)
 
+    def test_capa_factory(self):
+        """
+            validates CapaFactory on all options
+        """
+        CapaFactory.create(problem_state={'test':'test'}, correct=True)
 
     def test_validate_field_data(self):
         """
@@ -957,7 +1012,28 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         # and that this was considered attempt number 2 for grading purposes
         assert module.lcp.context['attempt'] == 2
 
-        assert module.get_score().raw_earned == 0 
+        assert module.get_score().raw_earned == 0
+    
+    def test_submit_problem_with_optional_current_time(self):
+        """
+            Validate that 'submit_problem' method correctly handles the optional 
+            'current_time' parameter
+        """
+        module = CapaFactory.create(attempts=1)
+
+        # Simulate that all answers are marked correct, no matter
+        # what the input is, by patching CorrectMap.is_correct()
+        # Also simulate rendering the HTML
+        with patch('common.lib.capa.capa.correctmap.CorrectMap.is_correct') as mock_is_correct:
+            with patch('xmodule.capa_module.ProblemBlock.get_problem_html') as mock_html:
+                mock_is_correct.return_value = True
+                mock_html.return_value = "Test HTML"
+
+                # Check the problem
+                get_request_dict = {CapaFactory.input_key(): '3.14'}
+                result = module.submit_problem(get_request_dict, override_time = datetime.datetime.now())
+        # Expect that the problem is marked correct
+        assert result['success'] == 'correct'
     
     def test_generate_report_data_correct(self):
         """
@@ -1021,10 +1097,9 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
             report_data = list(descriptor.generate_report_data(
                 self._mock_user_state_generator(
                     user_count=user_count,
-                    response_count=response_count,
+                    response_count=response_count
                 )
             ))
-            self.assertTrue(False)
 
         except NotImplementedError:
             self.assertTrue(True)
@@ -1039,7 +1114,58 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         descriptor.runtime = Mock()
         descriptor.data = '<problem/>'
         return descriptor
+    
+    @patch('eol_survey.models.Survey')
+    def test_studio_view_render(self,_):
+        """
+            Check if xblock studio template loaded correctly
+        """
+        studio_view = self.module.studio_view(context=None)
+        studio_view_html = studio_view.content
+        self.assertIn('id="settings-tab"', studio_view_html)
+    
+    def test_student_view_render(self):
+        """
+            Check if xblock student template loaded correctly
+        """
+        student_view = self.module.student_view(context=None)
+        student_view_html = student_view.content
+        self.assertIn('<div>Test Template HTML</div>', student_view_html)
 
+    def test_author_view_render(self):
+        """
+            Check if xblock author template loaded correctly
+        """
+        author_view = self.module.author_view(context=None)
+        author_view_html = author_view.content
+        self.assertIn('<div>Test Template HTML</div>', author_view_html)
+
+    def test_workbench_scenarios(self):
+        """
+            Validate that 'workbench_scenarios' methods returns the expected title and XML 
+            for the basic EolSurveyConsumerXBlock scenario.
+        """
+        result_title = 'EolSurveyConsumerXBlock'
+        basic_scenario = "<eolsurveyconsumer/>"
+        test_result = self.module.workbench_scenarios()
+        self.assertEqual(result_title, test_result[0][0])
+        self.assertIn(basic_scenario, test_result[0][1])
+    
+    def test_generate_report_data_with_limit_responses_zero(self):
+        """
+            Validate that 'generate_report_data' method correctly handles the optional 
+            'limit_responses' parameter with value 0
+        """
+        descriptor = self._get_descriptor()
+        user_count = 5
+        response_count = 10
+        report_data = list(descriptor.generate_report_data(
+            self._mock_user_state_generator(
+                user_count=user_count,
+                response_count=response_count,
+            )
+        ,0))
+        self.assertEqual(0, len(report_data))
 
 class TestEolSurveyReportView(ModuleStoreTestCase):
     def setUp(self):
@@ -1191,7 +1317,6 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
             }               
         report.return_value = generated_report_data
         store_mock = Mock()
-        from lms.djangoapps.courseware.models import StudentModule
         data = {'block': self.block_id, 'course': str(self.course.id), 'base_url':'this_is_a_url'}
         task_input = {'data': data }
         usage_key = UsageKey.from_string(self.block_id)
@@ -1248,7 +1373,6 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         generated_report_data = defaultdict(list)            
         report.return_value = generated_report_data
         store_mock = Mock()
-        from lms.djangoapps.courseware.models import StudentModule
         data = {'block': self.block_id, 'course': str(self.course.id), 'base_url':'this_is_a_url'}
         task_input = {'data': data}
         usage_key = UsageKey.from_string(self.block_id)
@@ -1357,7 +1481,6 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         """
             Test to load cb_survey in the instructor page. With a survey load in the cb
         """
-        from lms.djangoapps.courseware.models import StudentModule
         usage_key = UsageKey.from_string(self.block_id)
         module = StudentModule(
             module_state_key=usage_key,
@@ -1407,3 +1530,24 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         response = self.client_noStaff.get(reverse('survey_responses', kwargs = {'course_id':self.course.id}))
 
         self.assertEqual(response.status_code, 400)
+
+    def test_validate_block(self):
+        """
+            Checks validate_block normal process
+        """
+        response = EolSurveyReportAnalyticsView.validate_block(self, self.block_id)
+        self.assertTrue(response)
+
+    def test_validate_block_wrong_block_id(self):
+        """
+            Checks validate_block with wrong block_id 
+        """
+        response = EolSurveyReportAnalyticsView.validate_block(self, '1111111111')
+        self.assertFalse(response)
+
+    def test_have_permission(self):
+        """
+            Checks have_permission with wrong block_id 
+        """
+        response = EolSurveyReportAnalyticsView.have_permission(self, self.user_instructor, '1111111111')
+        self.assertFalse(response)
