@@ -1,6 +1,7 @@
 # Python Standard Libraries
 import datetime
 import logging
+import traceback
 
 # Installed packages (via pip)
 from django.template import Context, Template
@@ -193,6 +194,7 @@ class EolSurveyConsumerXBlock(ProblemBlock):
         shim_xmodule_js(fragment, 'Problem')
         fragment.add_css(self.resource_string("static/eol_survey/css/eolsurveyconsumer.css"))
         return fragment
+
     def validate_data(self, id):
         from .models import Survey
 
