@@ -27,17 +27,6 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 import logging
 logger = logging.getLogger(__name__)
 
-def _default_data():
-    return {
-        'form-rut': '',
-        'form-name': '',
-        'form-email': '',
-        'form-type': '',
-        'form-course': '',
-        'form-description': '',
-    }
-
-
 class EolSurveyView(View):
     http_method_names = ['post','get','delete']
     def get(self, request):
