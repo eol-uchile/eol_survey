@@ -1,19 +1,22 @@
-import six
-import csv
+# Python Standard Libraries
+from collections import OrderedDict, defaultdict
 import json
-from django.http import JsonResponse
-from django.http import HttpResponse
+import logging
+
+# Installed packages (via pip)
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
+from django.http import HttpResponse, JsonResponse
 from django.utils.translation import gettext as _
-from xmodule.modulestore.django import modulestore
-from collections import OrderedDict, defaultdict, Counter
-from lms.djangoapps.courseware.models import StudentModule
-from xmodule.modulestore.exceptions import ItemNotFoundError
-from opaque_keys.edx.keys import CourseKey, UsageKey, LearningContextKey
-from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
+import six
 
-import logging
+# Edx dependencies
+from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
+from lms.djangoapps.courseware.models import StudentModule
+from opaque_keys.edx.keys import CourseKey, UsageKey
+from xmodule.modulestore.django import modulestore
+from xmodule.modulestore.exceptions import ItemNotFoundError
+
 log = logging.getLogger(__name__)
 
 def get_all_states(block_id, course_key):

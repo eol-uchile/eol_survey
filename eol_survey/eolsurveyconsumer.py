@@ -1,27 +1,27 @@
-"""TO-DO: Write a description of what this XBlock is."""
-
-import json
+# Python Standard Libraries
 import datetime
-from pytz import utc
-import pkg_resources
-from six import text_type
-from xblock.core import XBlock
-from django.http import HttpResponse
-from web_fragments.fragment import Fragment
-from xmodule.exceptions import NotFoundError
-from xmodule.capa_module import ProblemBlock
-from xmodule.x_module import(shim_xmodule_js)
-from django.template import Context, Template
-from capa.util import convert_files_to_filenames
-from xblock.scorable import ScorableXBlockMixin, Score
-from common.lib.xmodule.xmodule.capa_base import RANDOMIZATION
-from xmodule.util.xmodule_django import add_webpack_to_fragment
-from xblockutils.studio_editable import StudioEditableXBlockMixin
-from xblock.fields import Integer, Scope, String, Dict, Float, Boolean, List, DateTime, JSONField
-
 import logging
-log = logging.getLogger(__name__)
+import traceback
 
+# Installed packages (via pip)
+from django.template import Context, Template
+from pytz import utc
+from six import text_type
+import pkg_resources
+
+# Edx dependencies
+from capa.util import convert_files_to_filenames
+from common.lib.xmodule.xmodule.capa_base import RANDOMIZATION
+from web_fragments.fragment import Fragment
+from xblock.core import XBlock
+from xblock.fields import Integer, Scope, String
+from xblock.scorable import Score
+from xmodule.capa_module import ProblemBlock
+from xmodule.exceptions import NotFoundError
+from xmodule.util.xmodule_django import add_webpack_to_fragment
+from xmodule.x_module import shim_xmodule_js
+
+log = logging.getLogger(__name__)
 
 class EolSurveyConsumerXBlock(ProblemBlock):
 
@@ -194,6 +194,7 @@ class EolSurveyConsumerXBlock(ProblemBlock):
         shim_xmodule_js(fragment, 'Problem')
         fragment.add_css(self.resource_string("static/eol_survey/css/eolsurveyconsumer.css"))
         return fragment
+
     def validate_data(self, id):
         from .models import Survey
 

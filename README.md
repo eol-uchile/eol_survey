@@ -1,5 +1,7 @@
 # EOL SURVEY
 
+![Coverage Status](/coverage-badge.svg)
+
 ![https://github.com/eol-uchile/eol_survey/actions](https://github.com/eol-uchile/eol_survey/workflows/Python%20application/badge.svg)
 
 On this Manager of your surveys can create, delete or edit a different surveys, also use this survey in a course like an xblock and finally, generate a report in the instructor view with all the answers of your students.
@@ -61,5 +63,10 @@ mydomain.com/Survey_form
 ## TESTS
 **Prepare tests:**
 
-    > cd .github/
-    > docker-compose run lms /openedx/requirements/eol_survey/.github/test.sh
+- Install **act** following the instructions in [https://nektosact.com/installation/index.html](https://nektosact.com/installation/index.html)
+
+**Run tests:**
+- In a terminal at the root of the project
+    ```
+    act -W .github/workflows/pythonapp.yml
+    ```

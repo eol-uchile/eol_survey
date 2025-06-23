@@ -18,11 +18,11 @@ def package_data(pkg, roots):
 
 setuptools.setup(
     name="eol_survey",
-    version="0.0.1",
-    author="matias melo",
-    author_email="matias.melo@uchile.cl",
-    description="Eol Survey ",
-    long_description="Eol Survey ",
+    version="1.0.0",
+    author="Oficina EOL UChile",
+    author_email="eol-ing@uchile.cl",
+    description="Eol Survey",
+    long_description="Eol Survey",
     url="https://eol.uchile.cl",
     packages=setuptools.find_packages(),
     package_data=package_data("eol_survey", ["static", "public"]),
