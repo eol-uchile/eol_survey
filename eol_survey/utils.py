@@ -5,9 +5,9 @@ import logging
 
 # Installed packages (via pip)
 from django.contrib.auth.models import User
-from django.core.exceptions import FieldError
 from django.http import HttpResponse, JsonResponse
 from django.utils.translation import gettext as _
+from uchileedxlogin.services.interface import get_user_id_doc_id_pairs
 import six
 
 # Edx dependencies
@@ -37,7 +37,7 @@ def _build_student_data(data, students, block, student_states, csvwriter):
     url_base = data['base_url']
     block_key = UsageKey.from_string(block)
     course_key = block_key.course_key
-    header = ['Username', 'Email', 'Run']
+    header = ['Username', 'Email', 'Documento_id']
     store = modulestore()
     with store.bulk_operations(course_key):
         block_item = store.get_item(block_key)
@@ -106,7 +106,7 @@ def get_questions(generated_report_data):
 def set_data(response, students, user_states, questions_ids):
     """ 
         Create a row according 
-        ['Username', 'Email', 'Run', 'Intentos', 'preg1', 'preg2, ... 'pregN' , 'Nota']
+        ['Username', 'Email', 'Documento_id', 'Intentos', 'preg1', 'preg2, ... 'pregN' , 'Nota']
     """
 
     # For each response in the block, copy over the basic data like the
@@ -114,7 +114,7 @@ def set_data(response, students, user_states, questions_ids):
     responses = [
             response['username'], 
             students[response['username']]['email'], 
-            students[response['username']]['rut'],
+            students[response['username']]['doc_id'],
             ]
     aux_response = {}
     for user_state in user_states:
@@ -128,22 +128,16 @@ def get_all_enrolled_users(course_key):
         Get all enrolled student 
     """
     students = OrderedDict()
-    try:
-        enrolled_students = User.objects.filter(
-            courseenrollment__course_id=course_key,
-            courseenrollment__is_active=1,
-        ).order_by('username').values('username', 'email', 'edxloginuser__run')
-    except FieldError:
-        enrolled_students = User.objects.filter(
-            courseenrollment__course_id=course_key,
-            courseenrollment__is_active=1,
-        ).order_by('username').values('username', 'email')
-    
+    enrolled_students = User.objects.filter(
+        courseenrollment__course_id=course_key,
+        courseenrollment__is_active=1,
+    ).order_by('username').values('id', 'username', 'email')
+    user_id_list = enrolled_students.values_list('id', flat=True)
+    user_doc_id = get_user_id_doc_id_pairs(user_id_list)
+    user_doc_id_dict = {id: doc_id for id, doc_id in user_doc_id}
     for user in enrolled_students:
-        run = ''
-        if 'edxloginuser__run' in user and user['edxloginuser__run'] != None:
-            run = user['edxloginuser__run']
-        students[user['username']] = {'email': user['email'], 'rut': run}
+        doc_id = user_doc_id_dict.get(user['id'], '')
+        students[user['username']] = {'email': user['email'], 'doc_id': doc_id}
     return students
 
 def get_report_xblock(block_key, user_states, block):
