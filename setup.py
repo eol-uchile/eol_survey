@@ -18,7 +18,7 @@ def package_data(pkg, roots):
 
 setuptools.setup(
     name="eol_survey",
-    version="2.0.0",
+    version="3.0.0",
     author="Oficina EOL UChile",
     author_email="eol-ing@uchile.cl",
     description="Eol Survey",

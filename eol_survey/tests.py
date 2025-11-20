@@ -1553,24 +1553,24 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         response = EolSurveyReportAnalyticsView.have_permission(self, self.user_instructor, '1111111111')
         self.assertFalse(response)
 
-    @patch('eol_survey.utils.get_user_id_doc_id_pairs')
-    def test_get_enrolled_users_with_doc_id(self, mock_user_id_doc_id_pair):
+    @patch('eol_survey.utils.get_user_id_with_indiv_id_list')
+    def test_get_enrolled_users_with_indiv_id(self, mock_user_id_with_indiv_id_list):
         """
-        Test get_all_enrolled_users when the users have a doc_id associated with them.
+        Test get_all_enrolled_users when the users have a indiv_id associated with them.
         """
-        mock_user_id_doc_id_pair.return_value = [(self.student.id, '1234567K'), (self.student2.id, '12345678')]
+        mock_user_id_with_indiv_id_list.return_value = [(self.student.id, '1234567K'), (self.student2.id, '12345678')]
         enrolled_users = get_all_enrolled_users(self.course.id)
-        self.assertEqual(enrolled_users[self.student.username]['doc_id'], '1234567K')
-        self.assertEqual(enrolled_users[self.student2.username]['doc_id'], '12345678')
-        self.assertEqual(enrolled_users[self.data_researcher_user.username]['doc_id'], '')
+        self.assertEqual(enrolled_users[self.student.username]['indiv_id'], '1234567K')
+        self.assertEqual(enrolled_users[self.student2.username]['indiv_id'], '12345678')
+        self.assertEqual(enrolled_users[self.data_researcher_user.username]['indiv_id'], '')
 
-    @patch('eol_survey.utils.get_user_id_doc_id_pairs')
-    def test_get_enrolled_users_without_doc_id(self, mock_user_id_doc_id_pair):
+    @patch('eol_survey.utils.get_user_id_with_indiv_id_list')
+    def test_get_enrolled_users_without_indiv_id(self, mock_user_id_with_indiv_id_list):
         """
-        Test get_all_enrolled_users when the users doesn't have a doc_id associated with them.
+        Test get_all_enrolled_users when the users doesn't have a indiv_id associated with them.
         """
-        mock_user_id_doc_id_pair.return_value = []
+        mock_user_id_with_indiv_id_list.return_value = []
         enrolled_users = get_all_enrolled_users(self.course.id)
-        self.assertEqual(enrolled_users[self.student.username]['doc_id'], '')
-        self.assertEqual(enrolled_users[self.student2.username]['doc_id'], '')
-        self.assertEqual(enrolled_users[self.data_researcher_user.username]['doc_id'], '')
+        self.assertEqual(enrolled_users[self.student.username]['indiv_id'], '')
+        self.assertEqual(enrolled_users[self.student2.username]['indiv_id'], '')
+        self.assertEqual(enrolled_users[self.data_researcher_user.username]['indiv_id'], '')
