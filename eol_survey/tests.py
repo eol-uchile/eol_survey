@@ -11,7 +11,6 @@ import datetime
 # Installed packages (via pip)
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from mock import patch, Mock
 
 # Edx dependencies
@@ -1292,25 +1291,25 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
         """
             Test eol_survey_report_analytics view data
         """
-        u1_state_1 = {_("Answer ID"): 'answer_id_1',
-            _("Question"): 'question_text_1',
-            _("Answer"): 'correct_answer_text_1',
-            _("Correct Answer") : 'correct_answer_text_1'
+        u1_state_1 = {"Answer ID": 'answer_id_1',
+            "Question": 'question_text_1',
+            "Answer": 'correct_answer_text_1',
+            "Correct Answer" : 'correct_answer_text_1'
             }
-        u1_state_2 = {_("Answer ID"): 'answer_id_2',
-            _("Question"): 'question_text_2',
-            _("Answer"): 'asdadsadsa',
-            _("Correct Answer") : 'correct_answer_text_2'
+        u1_state_2 = {"Answer ID": 'answer_id_2',
+            "Question": 'question_text_2',
+            "Answer": 'asdadsadsa',
+            "Correct Answer" : 'correct_answer_text_2'
             }
-        u2_state_1 = {_("Answer ID"): 'answer_id_1',
-            _("Question"): 'question_text_1',
-            _("Answer"): 'correct_answer_text_1',
-            _("Correct Answer") : 'correct_answer_text_1'
+        u2_state_1 = {"Answer ID": 'answer_id_1',
+            "Question": 'question_text_1',
+            "Answer": 'correct_answer_text_1',
+            "Correct Answer" : 'correct_answer_text_1'
             }
-        u2_state_2 = {_("Answer ID"): 'answer_id_2',
-            _("Question"): 'question_text_2',
-            _("Answer"): 'correct_answer_text_4',
-            _("Correct Answer") : 'correct_answer_text_2'
+        u2_state_2 = {"Answer ID": 'answer_id_2',
+            "Question": 'question_text_2',
+            "Answer": 'correct_answer_text_4',
+            "Correct Answer" : 'correct_answer_text_2'
             }
         generated_report_data = {
             self.student.username : [u1_state_1,u1_state_2],
@@ -1346,15 +1345,15 @@ class TestEolSurveyReportView(ModuleStoreTestCase):
             self.student.username,
             self.student.email,
             '',
-            u1_state_1[_("Answer")],
-            u1_state_2[_("Answer")],
+            u1_state_1["Answer"],
+            u1_state_2["Answer"],
         ])
         student_row2 = ";".join([
             self.student2.username,
             self.student2.email,
             '',
-            u2_state_1[_("Answer")],
-            u2_state_2[_("Answer")],
+            u2_state_1["Answer"],
+            u2_state_2["Answer"],
         ])
         expected_data = [
             header_row, 
