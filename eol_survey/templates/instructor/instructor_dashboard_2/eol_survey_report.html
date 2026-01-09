@@ -1,0 +1,29 @@
+<%page expression_filter="h"/>
+<%namespace name='static' file='/static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+from django.utils.http import urlencode
+%>
+<%
+base_url = reverse('eolSurveyReport')
+params = urlencode({'course': course.id})
+survey_url = f"{base_url}?{params}"
+%>
+<script type="text/javascript" src="${static.url('eol_survey/js/eol_survey_report_analytics.js')}"></script>
+<link rel="stylesheet" type="text/css" href="${static.url('eol_survey/css/eol_survey_report_analytics.css')}"/>
+<script type="text/javascript" src="${static.url('eol_survey/js/loadcbanalytics.js')}"></script>
+
+<div class='eol_survey_report_analytics-report'>
+  <h4 class="hd hd-4">${_("Survey Analytics")}</h4>
+  <div>
+    <select name="cb_eol_survey" id="cb_eol_survey"></select>
+    <button type="button" class="mt-3 mb-3" name="eol_survey_report_analytics-report" onclick="generate_analytics_report_survey(this)" data-endpoint="${ survey_url }">
+      ${_("Generate")}
+    </button>
+  </div>
+  <div class="eol_survey_report_analytics-success-msg" id="eol_survey_report_analytics-success-msg"></div>
+  <div class="eol_survey_report_analytics-warning-msg" id="eol_survey_report_analytics-warning-msg"></div>
+  <div class="eol_survey_report_analytics-error-msg" id="eol_survey_report_analytics-error-msg"></div>
+  <input type="hidden" name="courseId" id="courseId" value="${course.id}">
+</div>
