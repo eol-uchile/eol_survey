@@ -17,45 +17,47 @@ On this Manager of your surveys can create, delete or edit a different surveys, 
 
 # Install Theme
 
-To enable export Eol Survey combobox in your theme add next file and/or lines of code:
+To enable the export eol survey report interface, add the following code to your theme. This includes a conditional check to ensure the template only renders if the app is installed.
 
 - _../themes/your_theme/lms/templates/instructor/instructor_dashboard_2/data_download.html_
-    
-    **add the script and css**
-        
-        <script type="text/javascript" src="${static.url('eol_survey/js/eol_survey_report_analytics.js')}"></script>
-        <link rel="stylesheet" type="text/css" href="${static.url('eol_survey/css/eol_survey_report_analytics.css')}"/>
-        <script type="text/javascript" src="${static.url('eol_survey/js/loadcbanalytics.js')}"></script>
 
-    
-    **and add html button**
-    
-        <% 
-        try: 
-          import urllib
-          import eol_survey
-          from django.urls import reverse
-          enable_survey = True
-          survey_url = '{}?{}'.format(reverse('eolSurveyReport'), urllib.parse.urlencode({'course': str(course.id)}))
-        except mportError:
-          enable_survey = False 
-        %>
-        %if enable_survey :
-        
-        <div class='eol_survey_report_analytics-report'>    
-            <hr>
-            <h4 class="hd hd-4">${_("Analítica de encuestas")}</h4>
-            <p>
-                <select name="cb_eol_survey" id="cb_eol_survey" >
-                </select>     
-                <input onclick="generate_analytics_report_survey(this)" type="button" name="eol_survey_report_analytics-report" value="${_("Generar")}" data-endpoint="${ survey_url }"/>
-            </p>
-            <div class="eol_survey_report_analytics-success-msg" id="eol_survey_report_analytics-success-msg"></div>
-            <div class="eol_survey_report_analytics-warning-msg" id="eol_survey_report_analytics-warning-msg"></div>
-            <div class="eol_survey_report_analytics-error-msg" id="eol_survey_report_analytics-error-msg"></div>
-            <input type="hidden" name="courseId" id="courseId" value="${course.id}"> 
-        </div>
+    **add eol_survey template to the data_download template**
+
+        <%
+        survey_url = None
+        survey_traceback = None
+        try:
+          survey_url = reverse('eolSurveyReport')
+        except Exception:
+          if settings.DEBUG:
+            survey_traceback = traceback.format_exc()
+        %>  
+        %if survey_traceback:
+          <div class="survey_traceback" hidden>
+            <pre>${survey_traceback}</pre>
+          </div>
+        %elif survey_url:
+          <%include file="eol_survey.html"/>
         %endif
+
+
+### Adding new translations:
+
+To extract and update any new translatable text, run the update command below. After manually filling in the new translations, run the compile command to update the .mo translation files.
+
+### Commands
+
+**Update**
+
+    docker run -it --rm -w /code -v $(pwd):/code python:3.8 bash
+    pip install -r requirements-i18n.in
+    make update_translations
+
+**Compile**
+
+    docker run -it --rm -w /code -v $(pwd):/code python:3.8 bash
+    pip install -r requirements-i18n.in
+    make compile_translations
 
 # URL
 mydomain.com/Survey_form

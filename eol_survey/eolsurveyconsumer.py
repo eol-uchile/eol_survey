@@ -147,12 +147,12 @@ class EolSurveyConsumerXBlock(ProblemBlock):
                 correct_answer_text = lcp.find_correct_answer_text(answer_id)
 
                 report = {
-                    _("Answer ID"): answer_id,
-                    _("Question"): question_text,
-                    _("Answer"): answer_text,
+                    "Answer ID": answer_id,
+                    "Question": question_text,
+                    "Answer": answer_text,
                 }
                 if correct_answer_text is not None:
-                    report[_("Correct Answer")] = correct_answer_text
+                    report["Correct Answer"] = correct_answer_text
                 yield (user_state['username'], report)
 
 

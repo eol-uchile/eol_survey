@@ -6,7 +6,6 @@ import logging
 # Installed packages (via pip)
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
-from django.utils.translation import gettext as _
 from eol_sso.services.interface import get_user_id_with_indiv_id_list
 import six
 
@@ -97,10 +96,10 @@ def get_questions(generated_report_data):
         if questions:
             break
         for user_state in generated_report_data[username]:
-            if _("Correct Answer") in user_state:
-                questions[user_state[_("Answer ID")]] = {'question':user_state[_("Question")].replace(";",""), 'correct':user_state[_("Correct Answer")].replace(";","")}
+            if "Correct Answer" in user_state:
+                questions[user_state["Answer ID"]] = {'question':user_state["Question"].replace(";",""), 'correct':user_state["Correct Answer"].replace(";","")}
             else:
-                questions[user_state[_("Answer ID")]] = {'question':user_state[_("Question")].replace(";",""), 'correct':''}
+                questions[user_state["Answer ID"]] = {'question':user_state["Question"].replace(";",""), 'correct':''}
     return questions
 
 def set_data(response, students, user_states, questions_ids):
@@ -118,7 +117,7 @@ def set_data(response, students, user_states, questions_ids):
             ]
     aux_response = {}
     for user_state in user_states:
-        aux_response[user_state[_("Answer ID")]] = user_state[_("Answer")].replace(";","")
+        aux_response[user_state["Answer ID"]] = user_state["Answer"].replace(";","")
     for x in questions_ids:
         responses.append(aux_response[x])
     return responses

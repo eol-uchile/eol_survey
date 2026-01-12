@@ -11,7 +11,7 @@ function loadCbAnalytics(){
         success: function(data){
             var dropdown = $('#cb_eol_survey');
             dropdown.empty();
-            dropdown.append($('<option>').text('Seleccione una encuesta del curso').val(''));
+            dropdown.append($('<option>').text(gettext('Select a course survey')).val(''));
 
             $.each(data.response, function(index, item){
 
