@@ -20,10 +20,11 @@ from xmodule.capa_module import ProblemBlock
 from xmodule.exceptions import NotFoundError
 from xmodule.util.xmodule_django import add_webpack_to_fragment
 from xmodule.x_module import shim_xmodule_js
+from xblock.completable import CompletableXBlockMixin
 
 log = logging.getLogger(__name__)
 
-class EolSurveyConsumerXBlock(ProblemBlock):
+class EolSurveyConsumerXBlock(ProblemBlock, CompletableXBlockMixin):
 
     display_name = String(
         display_name = "Display_name",
@@ -376,6 +377,9 @@ class EolSurveyConsumerXBlock(ProblemBlock):
         # Withhold success indicator if hiding correctness
         if not self.correctness_available():
             success = 'submitted'
+
+        # emit completion event
+        self.emit_completion(1.0)
 
         return {
             'success': success,
