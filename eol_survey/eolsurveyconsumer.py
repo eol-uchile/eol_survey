@@ -379,7 +379,7 @@ class EolSurveyConsumerXBlock(ProblemBlock, CompletableXBlockMixin):
             success = 'submitted'
 
         # emit completion event
-        self.runtime.publish(self, 'completion', {'completion': 1.0})
+        self.emit_completion(1.0)
 
         return {
             'success': success,
