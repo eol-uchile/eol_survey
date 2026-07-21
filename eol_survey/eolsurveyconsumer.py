@@ -62,7 +62,7 @@ class EolSurveyConsumerXBlock(ProblemBlock, CompletableXBlockMixin):
         survey_list = [{'id': survey['id'], 'header': survey['header']} for survey in surveys]
         return survey_list
 
-    def generate_report_data(self, user_state_iterator, limit_responses=None):
+    def generate_report_data_survey(self, user_state_iterator, limit_responses=None):
         """
         Return a list of student responses to this block in a readable way.
 
