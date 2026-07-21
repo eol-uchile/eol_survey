@@ -18,12 +18,12 @@ from xmodule.modulestore.exceptions import ItemNotFoundError
 
 log = logging.getLogger(__name__)
 
-def get_all_states(block_id, course_key):
+def get_all_states(block_id, course_key, enrolled_students):
     """
         Get all student module
     """
     usage_key = UsageKey.from_string(block_id)
-    smdat = StudentModule.objects.filter(course_id=course_key, module_state_key=usage_key).order_by('student__username').values('student__username', 'state')
+    smdat = StudentModule.objects.filter(course_id=course_key, module_state_key=usage_key, student__username__in=enrolled_students.keys()).order_by('student__username').values('student__username', 'state')
     response = []
     for module in smdat:
         response.append({'username': module['student__username'], 'state': json.loads(module['state'])})
@@ -48,8 +48,6 @@ def _build_student_data(data, students, block, student_states, csvwriter):
                     header.append('Pregunta {}'.format(i + 1))
                 csvwriter.writerow(_get_utf8_encoded_rows(header))
                 for response in student_states:
-                    if response['username'] not in students:
-                        continue
                     # A human-readable location for the current block
                     # A machine-friendly location for the current block
                     # A block that has a single state per user can contain multiple responses
