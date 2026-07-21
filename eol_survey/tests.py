@@ -1035,14 +1035,14 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         # Expect that the problem is marked correct
         assert result['success'] == 'correct'
     
-    def test_generate_report_data_correct(self):
+    def test_generate_report_data_survey_correct(self):
         """
             report can be generated correctly
         """
         descriptor = self._get_descriptor()
         user_count = 5
         response_count = 10
-        report_data = list(descriptor.generate_report_data(
+        report_data = list(descriptor.generate_report_data_survey(
             self._mock_user_state_generator(
                 user_count=user_count,
                 response_count=response_count,
@@ -1085,7 +1085,7 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
             scope=None,
         )
     
-    def test_generate_report_data_error(self):
+    def test_generate_report_data_survey_error(self):
         """
             here it is not possible to create the report because
             the descriptor is not properly configured.
@@ -1094,7 +1094,7 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         user_count = 5
         response_count = 10
         try:
-            report_data = list(descriptor.generate_report_data(
+            report_data = list(descriptor.generate_report_data_survey(
                 self._mock_user_state_generator(
                     user_count=user_count,
                     response_count=response_count
@@ -1151,15 +1151,15 @@ class TestEolSurveyXBlock(CapaFactory, unittest.TestCase):
         self.assertEqual(result_title, test_result[0][0])
         self.assertIn(basic_scenario, test_result[0][1])
     
-    def test_generate_report_data_with_limit_responses_zero(self):
+    def test_generate_report_data_survey_with_limit_responses_zero(self):
         """
-            Validate that 'generate_report_data' method correctly handles the optional 
+            Validate that 'generate_report_data_survey' method correctly handles the optional 
             'limit_responses' parameter with value 0
         """
         descriptor = self._get_descriptor()
         user_count = 5
         response_count = 10
-        report_data = list(descriptor.generate_report_data(
+        report_data = list(descriptor.generate_report_data_survey(
             self._mock_user_state_generator(
                 user_count=user_count,
                 response_count=response_count,
