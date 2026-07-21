@@ -143,7 +143,7 @@ def get_report_xblock(block_key, user_states, block):
     # human-readable formatting for user state.
     """
     generated_report_data = defaultdict(list)
-    for username, state in block.generate_report_data(user_states, block):
+    for username, state in block.generate_report_data_survey(user_states, block):
         generated_report_data[username].append(state)
     return generated_report_data
 
